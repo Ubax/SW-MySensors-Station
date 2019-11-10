@@ -64,12 +64,27 @@ void TFT::drawText(int x, int y, String text, unsigned short size, Color color)
     tft.setCursor(x, y);
     tft.print(text);
 }
+
+int recalcWidth(int width)
+{
+    return (width < 0) ? TFT_WIDTH * ((-width) / 100.0) : width;
+}
+
+int recalcHeight(int height)
+{
+    return (height < 0) ? TFT_HEIGHT * ((-height) / 100.0) : height;
+}
+
 void TFT::drawRect(int x, int y, int width, int height, Color borderColor)
 {
+    width = recalcWidth(width);
+    height = recalcHeight(height);
     tft.drawRect(x, y, width, height, borderColor.get16Bit());
 }
 void TFT::drawFillRect(int x, int y, int width, int height, Color fillColor)
 {
+    width = recalcWidth(width);
+    height = recalcHeight(height);
     tft.fillRect(x, y, width, height, fillColor.get16Bit());
 }
 

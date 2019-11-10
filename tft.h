@@ -24,6 +24,10 @@
 
 #ifndef SW_TFT_H
 #define SW_TFT_H
+
+#define TFT_WIDTH 128
+#define TFT_HEIGHT 160
+
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
@@ -36,7 +40,7 @@ class TFT;
  */
 class Color
 {
-private:
+protected:
     int R, G, B;
 
 public:
@@ -50,11 +54,13 @@ public:
 /**
  * Implements functions for drawing on tft display
  * 
+ * All width and height prameters accept relative values.
+ * The relative values are negative values in percentage format e.g. 25% = -25
  */
 
 class TFT
 {
-private:
+protected:
     int RST, DC, CS;
     Adafruit_ST7735 tft;
 

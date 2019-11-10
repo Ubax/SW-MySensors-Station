@@ -1,4 +1,5 @@
 /**
+ * @file customScenes.h
  * @author Jakub Tkacz
  * 
  * The MIT License
@@ -22,39 +23,29 @@
  * THE SOFTWARE.
  */
 
-#ifndef SW_MY_STATION
-#define SW_MY_STATION
+#ifndef CUSTOM_SCENCES_H
+#define CUSTOM_SCENCES_H
 
-/**
- * Model for all data sent to the station
- * 
- * Currently consists of:
- * * temperature
- * * humadity
- * * time
- * * sleep mode with observer functionality
- */
+#include "ui.h"
 
-class Station
+class BasicScene : Scene
 {
-protected:
-    float temperature;
-    float humadity;
-    int time;
-    bool sleepMode;
-    void (*sleepObserver)(Station *);
-
 public:
-    float getTemperature();
-    float getHumadity();
-    int getTimeInSeconds();
-    bool isSleepMode();
-    void setTemperature(float temperature);
-    void setHumadity(float humadity);
-    void setTimeInSeconds(int time);
-    void turnOnSleepMode();
-    void turnOffSleepMode();
-    void setSleepModeObserver(void (*observer)(Station *));
+    BasicScene(void (*_draw)(TFT *, Station *, Station, bool):Scene(_draw, [](UI *ui) {
+        ui->next(); }, [](UI *ui) {
+        ui->prev(); }, [](UI *ui) {
+        ui->turnOffSleepMode(); }, [](UI *ui) {
+        ui->turnOnSleepMode(); }){}
 };
+
+// class SettingsScene : Scene
+// {
+// public:
+//     SettingsScene(void (*_draw)(TFT *, Station *, Station, bool);
+// };
+
+// class MenuScene : SettingsScene
+// {
+// };
 
 #endif

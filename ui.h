@@ -33,7 +33,7 @@ class Scene;
 
 class Scene
 {
-private:
+protected:
   void (*_draw)(TFT *, Station *, Station, bool);
   void (*_onEnter)(UI *);
   void (*_onBack)(UI *);
@@ -99,7 +99,7 @@ public:
 
 class UI
 {
-private:
+protected:
   Scene *scenes;
   int numberOfScenes;
   TFT *tft;

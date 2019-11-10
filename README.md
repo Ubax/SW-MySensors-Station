@@ -9,6 +9,7 @@ Connections shown below are default connections which are currently saved in con
 ### Radio - nRF24l01
 
 nRF24l01 pins numbers
+
 Name | Num | Num | Name
 -----|-----|-----|-----
 GND|1|2|3.3V
