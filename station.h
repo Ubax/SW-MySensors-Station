@@ -42,19 +42,31 @@ protected:
     float humadity;
     int time;
     bool sleepMode;
+    bool _movementDetected;
+    int brigthness=100;
+    float airPressure=0.0;
     void (*sleepObserver)(Station *);
+    void (*movementObserver)(Station *);
 
 public:
     float getTemperature();
     float getHumadity();
+    float getAirPressure();
     int getTimeInSeconds();
     bool isSleepMode();
+    bool movementDetected();
+    int getBrigthness();
     void setTemperature(float temperature);
     void setHumadity(float humadity);
+    void setAirPressure(float airPressure);
     void setTimeInSeconds(int time);
     void turnOnSleepMode();
     void turnOffSleepMode();
     void setSleepModeObserver(void (*observer)(Station *));
+    void setMovementObserver(void (*observer)(Station *));
+    void setBrigthness(int brigthness);
+    void detectedMovement();
+    void detectedNoMovement();
 };
 
 #endif

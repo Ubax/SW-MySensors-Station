@@ -34,6 +34,11 @@ float Station::getHumadity()
     return this->humadity;
 }
 
+float Station::getAirPressure()
+{
+    return this->airPressure;
+}
+
 int Station::getTimeInSeconds()
 {
     return this->time;
@@ -52,6 +57,11 @@ void Station::setTemperature(float temperature)
 void Station::setHumadity(float humadity)
 {
     this->humadity = humadity;
+}
+
+void Station::setAirPressure(float airPressure)
+{
+    this->airPressure = airPressure;
 }
 
 void Station::setTimeInSeconds(int time)
@@ -75,3 +85,30 @@ void Station::setSleepModeObserver(void (*observer)(Station *))
 {
     this->sleepObserver = observer;
 }
+
+void Station::setMovementObserver(void (*observer)(Station *))
+{
+    this->movementObserver = observer;
+}
+
+void Station::setBrigthness(int brigthness){
+    if(brigthness<0)brigthness=0;
+    if(brigthness>100)brigthness=100;
+    this->brigthness=brigthness;
+}
+
+int Station::getBrigthness(){
+    return this->brigthness;
+}
+bool Station::movementDetected(){
+    return this->_movementDetected;
+}
+void Station::detectedMovement(){
+    this->_movementDetected=true;
+    this->movementObserver(this);
+}
+void Station::detectedNoMovement(){
+    this->_movementDetected=false;
+    this->movementObserver(this);
+}
+

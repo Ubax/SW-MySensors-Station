@@ -87,6 +87,7 @@ public:
 
     void drawText(int x, int y, String text);
     void drawText(int x, int y, String text, unsigned short size, Color color);
+    void redrawText(int x, int y, unsigned short size, String text,  Color color, String oldText, Color bgColor);
     void drawRect(int x, int y, int width, int height, Color borderColor);
     void drawFillRect(int x, int y, int width, int height, Color fillColor);
     void fillScreen(Color borderColor);

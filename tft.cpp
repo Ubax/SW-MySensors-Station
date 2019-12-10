@@ -65,6 +65,12 @@ void TFT::drawText(int x, int y, String text, unsigned short size, Color color)
     tft.print(text);
 }
 
+void TFT::redrawText(int x, int y, unsigned short size, String text, Color color, String oldText, Color bgColor)
+{
+    this->drawText(x, y, oldText, size, bgColor);
+    this->drawText(x, y, text, size, color);
+}
+
 int recalcWidth(int width)
 {
     return (width < 0) ? TFT_WIDTH * ((-width) / 100.0) : width;

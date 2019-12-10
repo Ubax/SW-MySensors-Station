@@ -52,12 +52,8 @@ public:
    * @brief Construct a new Scene object
    * 
    * @param _draw - function which will draw scene. Draw function should take four arguments: pointer to display, pointer to current station, old station, is scene in init mode
-   * @param _onNext - function which will be fired when next button is pressed
-   * @param _onPrev - function which will be fired when prev button is pressed
-   * @param _onEnter - function which will be fired when enter button is pressed
-   * @param _onBack - function which will be fired when back button is pressed
    */
-  Scene(void (*_draw)(TFT *, Station *, Station, bool), void (*_onNext)(UI *), void (*_onPrev)(UI *), void (*_onEnter)(UI *), void (*_onBack)(UI *));
+  Scene(void (*_draw)(TFT *, Station *, Station, bool));
 
   /**
    * @brief Function drawing scene
@@ -67,34 +63,6 @@ public:
    * @param isInit 
    */
   void draw(TFT *tft, Station *station, bool isInit);
-
-  /**
-   * @brief Function informing scene that next button is pressed
-   * 
-   * @param ui - UI which informs scene of that event
-   */
-  void onNext(UI *ui);
-
-  /**
-   * @brief Function informing scene that prev button is pressed
-   * 
-   * @param ui - UI which informs scene of that event
-   */
-  void onPrev(UI *ui);
-
-  /**
-   * @brief Function informing scene that enter button is pressed
-   * 
-   * @param ui - UI which informs scene of that event
-   */
-  void onEnter(UI *ui);
-
-  /**
-   * @brief Function informing scene that back button is pressed
-   * 
-   * @param ui - UI which informs scene of that event
-   */
-  void onBack(UI *ui);
 };
 
 class UI
@@ -136,30 +104,6 @@ public:
    * 
    */
   void draw();
-
-  /**
-   * @brief Inform UI that next button is pressed
-   * 
-   */
-  void onNext();
-
-  /**
-   * @brief Inform UI that prev button is pressed
-   * 
-   */
-  void onPrev();
-
-  /**
-   * @brief Inform UI that enter button is pressed
-   * 
-   */
-  void onEnter();
-
-  /**
-   * @brief Inform UI that back button is pressed
-   * 
-   */
-  void onBack();
 };
 
 #endif

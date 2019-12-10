@@ -4,12 +4,14 @@
 #include <MySensors.h>
 #include "tft.h"
 #include "ui.h"
+#include "InterruptManager.h"
 
 Station *station;
 TFT *tftDisplay;
 bool *shouldRefresh;
 UI *ui;
 long *oldMillis;
+InterruptManager *manager;
 
 bool areEqual(float a, float b)
 {
@@ -30,12 +32,14 @@ String secondsToTimeHM(int seconds)
 
 void home(TFT *tft, Station *station, Station oldStation, bool isInit)
 {
-  Serial.println(isInit);
+  Color timeBgColor = Color(169, 227, 187);
+  Color tempBgColor = Color(247, 179, 43);
+  Color humBgColor = Color(252, 246, 177);
   if (isInit)
   {
-    tft->drawFillRect(0, 0, 128, 60, Color(169, 227, 187));
-    tft->drawFillRect(0, 60, 128, 50, Color(247, 179, 43));
-    tft->drawFillRect(0, 110, 128, 50, Color(252, 246, 177));
+    tft->drawFillRect(0, 0, 128, 60, timeBgColor);
+    tft->drawFillRect(0, 60, 128, 50, tempBgColor);
+    tft->drawFillRect(0, 110, 128, 50, humBgColor);
     tft->drawText(0, 10, secondsToTimeHM(station->getTimeInSeconds()), 3, Color(0, 0, 0));
     tft->drawText(0, 70, String(station->getTemperature()) + String("*"), 3, Color(0, 0, 0));
     tft->drawText(0, 120, String(station->getHumadity()) + String("%"), 3, Color(0, 0, 0));
@@ -46,44 +50,61 @@ void home(TFT *tft, Station *station, Station oldStation, bool isInit)
     String timeHM = secondsToTimeHM(station->getTimeInSeconds());
 
     if (oldTimeHM != timeHM)
-    {
-      tft->drawText(0, 10, oldTimeHM, 3, Color(247, 179, 43));
-      tft->drawText(0, 10, timeHM, 3, Color(0, 0, 0));
-    }
-    tft->drawText(0, 0, String(), 2, Color(0, 0, 0));
+      tft->redrawText(0, 10, 3, timeHM, Color(0, 0, 0), oldTimeHM, timeBgColor);
+
     if (!areEqual(station->getTemperature(), oldStation.getTemperature()))
-    {
-      tft->drawText(0, 70, String(oldStation.getTemperature()) + String("*"), 3, Color(247, 179, 43));
-      tft->drawText(0, 70, String(station->getTemperature()) + String("*"), 3, Color(0, 0, 0));
-    }
+      tft->redrawText(0, 70, 3,
+                      String(station->getTemperature()) + String("*"), Color(0, 0, 0),
+                      String(oldStation.getTemperature()) + String("*"), tempBgColor);
+
     if (!areEqual(station->getHumadity(), oldStation.getHumadity()))
-    {
-      tft->drawText(0, 120, String(oldStation.getHumadity()) + String("%"), 3, Color(252, 246, 177));
-      tft->drawText(0, 120, String(station->getHumadity()) + String("%"), 3, Color(0, 0, 0));
-    }
+      tft->redrawText(0, 120, 3,
+                      String(station->getHumadity()) + String("%"), Color(0, 0, 0),
+                      String(oldStation.getHumadity()) + String("%"), humBgColor);
   }
 }
 
-void temp(TFT *tft, Station *station, Station oldStation, bool isInit)
+void minimal(TFT *tft, Station *station, Station oldStation, bool isInit)
 {
-  if (isInit)
-    tft->drawFillRect(0, 0, 128, 160, Color(20, 20, 20));
+  Color bgColor = Color(0, 0, 0);
+  Color textColor = Color(230, 230, 230);
+  if (isInit){
+    tft->drawFillRect(0, 0, 128, 160, bgColor);
+    tft->drawText(0, 35, String(station->getTemperature()) + String("*"), 3, textColor);
+    tft->drawText(0, 100, String((int)station->getAirPressure()) + String("hPa"), 1, textColor);
+  }
+    
   if (!areEqual(station->getTemperature(), oldStation.getTemperature()))
   {
-    tft->drawText(0, 65, String(oldStation.getTemperature()) + String("*"), 3, Color(20, 20, 20));
-    tft->drawText(0, 65, String(station->getTemperature()) + String("*"), 3, Color(200, 200, 200));
+    tft->drawText(0, 35, String(oldStation.getTemperature()) + String("*"), 3, bgColor);
+    tft->drawText(0, 35, String(station->getTemperature()) + String("*"), 3, textColor);
+  }
+  if (!areEqual(station->getAirPressure(), oldStation.getAirPressure()))
+  {
+    tft->drawText(0, 100, String(oldStation.getAirPressure()) + String("hPa"), 2, bgColor);
+    tft->drawText(0, 100, String(station->getAirPressure()) + String("hPa"), 2, textColor);
   }
 }
 
-void setup()
+void setupStation()
 {
-  pinMode(PIN_NUMBER_BUTTON_NEXT, INPUT_PULLUP);
-  pinMode(PIN_NUMBER_BUTTON_PREV, INPUT_PULLUP);
-  pinMode(PIN_SLEEP_MODE, OUTPUT);
-
   station = new Station();
-  station->setSleepModeObserver([](Station *station) { digitalWrite(PIN_SLEEP_MODE, station->isSleepMode() ? LOW : HIGH); });
+  station->setSleepModeObserver([](Station *station) {
+    station->setBrigthness(station->isSleepMode() ? 30 : 100);
+    ui->next();
+    *shouldRefresh = true;
+  });
+  station->setMovementObserver([](Station *station) {
+    if (station->movementDetected())
+      station->turnOffSleepMode();
+    else
+      station->turnOnSleepMode();
+  });
   station->turnOffSleepMode();
+}
+
+void setupUI()
+{
   tftDisplay = new TFT(TFT_RST, TFT_A0, TFT_CS, TFT_SDA, TFT_SCK);
   shouldRefresh = new bool;
   *shouldRefresh = true;
@@ -92,14 +113,21 @@ void setup()
 
   const int numberOfScenes = 2;
   Scene *scenes = new Scene[numberOfScenes];
-  scenes[0] = Scene(&home, [](UI *ui) { ui->next(); }, [](UI *ui) { ui->prev(); }, [](UI *ui) { Serial.println("Enter"); }, [](UI *ui) { Serial.println("Back"); });
-  scenes[1] = Scene(&temp, [](UI *ui) { ui->next(); }, [](UI *ui) { ui->prev(); }, [](UI *ui) { Serial.println("Enter"); }, [](UI *ui) { Serial.println("Back"); });
-  ui = new UI(scenes, numberOfScenes, tftDisplay, station);
+  scenes[1] = Scene(&home);
+  scenes[0] = Scene(&minimal);
 
-  attachInterrupt(digitalPinToInterrupt(PIN_NUMBER_BUTTON_NEXT), []() { ui->onNext(); }, RISING);
-  attachInterrupt(digitalPinToInterrupt(PIN_NUMBER_BUTTON_PREV), []() { ui->onPrev(); }, RISING);
-  attachInterrupt(digitalPinToInterrupt(PIN_NUMBER_BUTTON_ENTER), []() { ui->onEnter(); }, RISING);
-  attachInterrupt(digitalPinToInterrupt(PIN_NUMBER_BUTTON_BACK), []() { ui->onBack(); }, RISING);
+  ui = new UI(scenes, numberOfScenes, tftDisplay, station);
+}
+
+void setup()
+{
+  pinMode(PIN_NUMBER_BUTTON_NEXT, INPUT_PULLUP);
+  pinMode(PIN_NUMBER_BUTTON_PREV, INPUT_PULLUP);
+  pinMode(PIN_SLEEP_MODE, OUTPUT);
+  pinMode(PIN_DISPLAY_BRIGTHNESS, OUTPUT);
+
+  setupUI();
+  setupStation();
 }
 
 void presentation()
@@ -116,34 +144,45 @@ void receive(const MyMessage &message)
   }
   if ((message.type == V_HUM))
   {
-    //station->setHumadity(message.getFloat());
-    station->setHumadity(30);
+    station->setHumadity(message.getFloat());
+    *shouldRefresh = true;
+  }
+  if ((message.type == V_PRESSURE))
+  {
+    station->setAirPressure(message.getFloat());
     *shouldRefresh = true;
   }
 
+  if ((message.type == V_TRIPPED))
+  {
+    station->setAirPressure(message.getFloat());
+    *shouldRefresh = true;
+  }
 } // end: void receive()
 
 void loop()
 {
-  if (millis() - *oldMillis > 3000)
+  if (millis() - *oldMillis > 10000)
   {
-    Serial.print("Time update\t");
     int d = (millis() - *oldMillis) / 1000;
-    Serial.print(d);
-    Serial.print("\t");
-    Serial.println(station->getTimeInSeconds());
     station->setTimeInSeconds(station->getTimeInSeconds() + d);
     *shouldRefresh = true;
     *oldMillis = millis();
+    if (station->movementDetected())
+      station->detectedNoMovement();
+    else
+      station->detectedMovement();
   }
   if (*shouldRefresh)
   {
+    analogWrite(PIN_DISPLAY_BRIGTHNESS, station->getBrigthness() * 255 / 100);
     ui->draw();
-    /*Serial.print("Temp: ");
+    Serial.print("Temp: ");
     Serial.print(station->getTemperature());
     Serial.print("\t\tHum: ");
-    Serial.println(station->getHumadity());*/
+    Serial.println(station->getHumadity());
     *shouldRefresh = false;
   }
-  sleep(50);
+  // manager->check();
+  sleep(10);
 }

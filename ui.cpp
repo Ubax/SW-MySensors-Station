@@ -29,13 +29,9 @@ Scene::Scene()
 {
     this->_draw = NULL;
 }
-Scene::Scene(void (*_draw)(TFT *, Station *, Station, bool), void (*_onNext)(UI *), void (*_onPrev)(UI *), void (*_onEnter)(UI *), void (*_onBack)(UI *))
+Scene::Scene(void (*_draw)(TFT *, Station *, Station, bool))
 {
     this->_draw = _draw;
-    this->_onNext = _onNext;
-    this->_onPrev = _onPrev;
-    this->_onEnter = _onEnter;
-    this->_onBack = _onBack;
 }
 void Scene::draw(TFT *tft, Station *station, bool isInit)
 {
@@ -45,22 +41,6 @@ void Scene::draw(TFT *tft, Station *station, bool isInit)
         this->_draw(tft, &_station, this->oldStation, isInit);
     this->oldStation = *station;
     *station = _station;
-}
-void Scene::onNext(UI *ui)
-{
-    this->_onNext(ui);
-}
-void Scene::onPrev(UI *ui)
-{
-    this->_onPrev(ui);
-}
-void Scene::onEnter(UI *ui)
-{
-    this->_onEnter(ui);
-}
-void Scene::onBack(UI *ui)
-{
-    this->_onBack(ui);
 }
 
 UI::UI(Scene *scenes, int numberOfScenes, TFT *tft, Station *station)
@@ -104,20 +84,4 @@ void UI::draw()
     this->scenes[this->currentSceneId].draw(this->tft, this->station, *this->isInit);
     this->refreshed = true;
     *this->isInit = false;
-}
-void UI::onNext()
-{
-    this->scenes[this->currentSceneId].onNext(this);
-}
-void UI::onPrev()
-{
-    this->scenes[this->currentSceneId].onPrev(this);
-}
-void UI::onEnter()
-{
-    this->scenes[this->currentSceneId].onEnter(this);
-}
-void UI::onBack()
-{
-    this->scenes[this->currentSceneId].onBack(this);
 }

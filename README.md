@@ -2,7 +2,7 @@
 
 Before running the project, first check if all the values in configuration files are correct.
 
-## Arduino Mega Connections
+## Arduino Mega Connections 
 
 Connections shown below are default connections which are currently saved in configuration files
 
